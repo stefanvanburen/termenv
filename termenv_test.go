@@ -362,6 +362,7 @@ func TestEnvColorProfile(t *testing.T) {
 		// FORCE_COLOR and CLICOLOR_FORCE both force at least ANSI on a non-TTY.
 		{"force_color", "FORCE_COLOR", "1", ANSI},
 		{"force_color_any_value", "FORCE_COLOR", "any-non-empty-string", ANSI},
+		{"force_color_any_value", "FORCE_COLOR", "0", ANSI},
 		{"clicolor_force", "CLICOLOR_FORCE", "1", ANSI},
 	}
 	for _, test := range tests {
