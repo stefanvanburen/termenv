@@ -322,31 +322,26 @@ func TestTemplateHelpers(t *testing.T) {
 func TestEnvNoColor(t *testing.T) {
 	tests := []struct {
 		name     string
-		environ  []string
+		environ  map[string]string
 		expected bool
 	}{
 		{"no env", nil, false},
-		{"no_color", []string{"NO_COLOR", "Y"}, true},
-		{"no_color+clicolor=1", []string{"NO_COLOR", "Y", "CLICOLOR", "1"}, true},
-		{"no_color+clicolor_force=1", []string{"NO_COLOR", "Y", "CLICOLOR_FORCE", "1"}, true},
-		{"clicolor=0", []string{"CLICOLOR", "0"}, true},
-		{"clicolor=1", []string{"CLICOLOR", "1"}, false},
-		{"clicolor_force=1", []string{"CLICOLOR_FORCE", "0"}, false},
-		{"clicolor_force=0", []string{"CLICOLOR_FORCE", "1"}, false},
-		{"clicolor=0+clicolor_force=1", []string{"CLICOLOR", "0", "CLICOLOR_FORCE", "1"}, false},
-		{"clicolor=1+clicolor_force=1", []string{"CLICOLOR", "1", "CLICOLOR_FORCE", "1"}, false},
-		{"clicolor=0+clicolor_force=0", []string{"CLICOLOR", "0", "CLICOLOR_FORCE", "0"}, true},
-		{"clicolor=1+clicolor_force=0", []string{"CLICOLOR", "1", "CLICOLOR_FORCE", "0"}, false},
+		{"no_color", map[string]string{"NO_COLOR": "Y"}, true},
+		{"no_color+clicolor=1", map[string]string{"NO_COLOR": "Y", "CLICOLOR": "1"}, true},
+		{"no_color+clicolor_force=1", map[string]string{"NO_COLOR": "Y", "CLICOLOR_FORCE": "1"}, true},
+		{"clicolor=0", map[string]string{"CLICOLOR": "0"}, true},
+		{"clicolor=1", map[string]string{"CLICOLOR": "1"}, false},
+		{"clicolor_force=1", map[string]string{"CLICOLOR_FORCE": "0"}, false},
+		{"clicolor_force=0", map[string]string{"CLICOLOR_FORCE": "1"}, false},
+		{"clicolor=0+clicolor_force=1", map[string]string{"CLICOLOR": "0", "CLICOLOR_FORCE": "1"}, false},
+		{"clicolor=1+clicolor_force=1", map[string]string{"CLICOLOR": "1", "CLICOLOR_FORCE": "1"}, false},
+		{"clicolor=0+clicolor_force=0", map[string]string{"CLICOLOR": "0", "CLICOLOR_FORCE": "0"}, true},
+		{"clicolor=1+clicolor_force=0", map[string]string{"CLICOLOR": "1", "CLICOLOR_FORCE": "0"}, false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			defer func() {
-				os.Unsetenv("NO_COLOR")
-				os.Unsetenv("CLICOLOR")
-				os.Unsetenv("CLICOLOR_FORCE")
-			}()
-			for i := 0; i < len(test.environ); i += 2 {
-				os.Setenv(test.environ[i], test.environ[i+1])
+			for k, v := range test.environ {
+				t.Setenv(k, v)
 			}
 			out := NewOutput(os.Stdout)
 			actual := out.EnvNoColor()
@@ -360,22 +355,18 @@ func TestEnvNoColor(t *testing.T) {
 func TestEnvColorProfile(t *testing.T) {
 	tests := []struct {
 		name     string
-		environ  []string
+		envName  string
+		envValue string
 		expected Profile
 	}{
 		// FORCE_COLOR and CLICOLOR_FORCE both force at least ANSI on a non-TTY.
-		{"force_color", []string{"FORCE_COLOR", "1"}, ANSI},
-		{"clicolor_force", []string{"CLICOLOR_FORCE", "1"}, ANSI},
+		{"force_color", "FORCE_COLOR", "1", ANSI},
+		{"force_color_any_value", "FORCE_COLOR", "any-non-empty-string", ANSI},
+		{"clicolor_force", "CLICOLOR_FORCE", "1", ANSI},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			defer func() {
-				os.Unsetenv("CLICOLOR_FORCE")
-				os.Unsetenv("FORCE_COLOR")
-			}()
-			for i := 0; i < len(test.environ); i += 2 {
-				os.Setenv(test.environ[i], test.environ[i+1])
-			}
+			t.Setenv(test.envName, test.envValue)
 			// Use a bytes.Buffer so ColorProfile() returns Ascii (non-TTY).
 			buf := &bytes.Buffer{}
 			out := NewOutput(buf)

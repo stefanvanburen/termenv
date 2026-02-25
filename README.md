@@ -52,7 +52,7 @@ variables:
 
 - [`NO_COLOR`](https://no-color.org/) — disables color output when set
 - [`CLICOLOR`/`CLICOLOR_FORCE`](https://bixense.com/clicolors/) — controls and forces color output
-- [`FORCE_COLOR`](https://force-color.org/) — forces a minimum color level: `1` for ANSI, `2` for 256-color, `3` for TrueColor
+- [`FORCE_COLOR`](https://force-color.org/) — forces color output when set
 
 You can also query the terminal for its color scheme, so you know whether your
 app is running in a light- or dark-themed environment:
