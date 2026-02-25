@@ -357,6 +357,36 @@ func TestEnvNoColor(t *testing.T) {
 	}
 }
 
+func TestEnvColorProfile(t *testing.T) {
+	tests := []struct {
+		name     string
+		environ  []string
+		expected Profile
+	}{
+		// FORCE_COLOR and CLICOLOR_FORCE both force at least ANSI on a non-TTY.
+		{"force_color", []string{"FORCE_COLOR", "1"}, ANSI},
+		{"clicolor_force", []string{"CLICOLOR_FORCE", "1"}, ANSI},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			defer func() {
+				os.Unsetenv("CLICOLOR_FORCE")
+				os.Unsetenv("FORCE_COLOR")
+			}()
+			for i := 0; i < len(test.environ); i += 2 {
+				os.Setenv(test.environ[i], test.environ[i+1])
+			}
+			// Use a bytes.Buffer so ColorProfile() returns Ascii (non-TTY).
+			buf := &bytes.Buffer{}
+			out := NewOutput(buf)
+			actual := out.EnvColorProfile()
+			if test.expected != actual {
+				t.Errorf("expected %s but was %s", test.expected.Name(), actual.Name())
+			}
+		})
+	}
+}
+
 func TestPseudoTerm(t *testing.T) {
 	buf := &bytes.Buffer{}
 	o := NewOutput(buf)
